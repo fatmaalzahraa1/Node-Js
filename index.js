@@ -1,41 +1,56 @@
 
 const fs=require('fs');
-let productsDB=JSON.parse(fs.readFileSync("text.json",'utf-8'))
 
-const http=require('http');
-const server=http.createServer(function(request,response)
+if(process.argv[2]=="add")
 {
+    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
+    let student = {id:data.length+1,name:process.argv[3],grade:process.argv[4]}
+    data.push(student);
+    fs.writeFileSync("new.txt",JSON.stringify(data));
+    console.log(data)   
+}
+
+else if(process.argv[2]=="list")
+{
+    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
+    console.log(data)
+    data.forEach(element => {
+        console.log(element['id']);
+        console.log(element['name']);
+        console.log(element['grade']);
+        console.log('\n');
+    });
+}
+
+else if(process.argv[2]=="edit")
+{
+    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
+
+    data.forEach(student => {
+        if(student.id == parseInt(process.argv[4])){
+            student.grade = process.argv[3]
+        }
+    });
+    fs.writeFileSync("new.txt",JSON.stringify(data));
+}
+
+else if(process.argv[2]=="delete")
+{
+    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
+
+    let id = parseInt(process.argv[3])-1
+    data.splice(id,1)
+    fs.writeFileSync("new.txt",JSON.stringify(data));
+}
+
+else if(process.argv[2]=="sum")
+{
+    let sum = 0
+    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
     
-    let urls=request.url.split('/');
-    //console.log(urls);
-    if(urls[1]=='home')
-    {
-        response.write("<b>welcome to our APIs </b>")
-    }
-    else if((urls[1]=='products') && isFinite(urls[2]))
-    {
-        // let products = JSON.stringify(productsDB)
-        let id = urls[2]
-        let product = productsDB[parseInt(id)]
-        products = JSON.stringify(product)
-        console.log(id);
-        response.write(products)
-    }
-    else if((urls[1]=='products'))
-    {
-        let products = JSON.stringify(productsDB)
-        response.write(products)
-    }
-    else
-    {
-        response.writeHead(404);
-        response.write('<h1>not found</h1>')
-    }
-    response.end()
-})
-
-server.listen(7777,function()
-{
-    console.log('hi i listen in port 7777');
-})
-
+for(let i=0;i<data.length;i++){
+    sum+=parseInt(data[i].grade);
+}
+    
+    console.log(sum);
+}
