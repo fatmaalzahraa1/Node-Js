@@ -1,56 +1,102 @@
+// var http = require('http');
+// http.createServer(function (request, response) {
+//   response.writeHead(200, {'Content-Type': 'text/plain'});
+//   response.end('Hello World');
+// }).listen(7777);
 
-const fs=require('fs');
+// console.log('Server running at http://127.0.0.1:8081/');
 
-if(process.argv[2]=="add")
+const express=require('express');
+const fs=require("fs")
+const app=express(); // factory function 
+const cors=require('cors')
+
+
+// var data=[{name:"ahmed",age:22},
+// {name:"ali",age:22},
+// {name:"negm",age:22},
+// {name:"sayed",age:22}] //db
+app.use(cors()); // why cors any thing need to talk out of my range  to my i accept 
+app.use(function(req,res,next) // midlware 
 {
-    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
-    let student = {id:data.length+1,name:process.argv[3],grade:process.argv[4]}
-    data.push(student);
-    fs.writeFileSync("new.txt",JSON.stringify(data));
-    console.log(data)   
-}
+console.log("hi in midelware") // logic 
+next();
+})
 
-else if(process.argv[2]=="list")
+
+
+app.use(express.urlencoded({extended:true}))
+
+app.get('/getregister',function(req,res)
 {
-    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
-    console.log(data)
-    data.forEach(element => {
-        console.log(element['id']);
-        console.log(element['name']);
-        console.log(element['grade']);
-        console.log('\n');
-    });
-}
+        let html=fs.readFileSync("register.html",'utf-8');
+        res.send(html);
+})
 
-else if(process.argv[2]=="edit")
+app.post('/register',function(req,res)
 {
-    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
+    let data=JSON.parse(fs.readFileSync("users.txt",'utf-8'))
+    console.log(req.body)
+    if(req.body.user==''){
+        res.status(424).send("error:” {username} is required”")
+    }else if(req.body.pass==''){
+        res.status(424).send("error:” {password} is required”")
+    }else if(req.body.name==''){
+        res.status(424).send("error:” {name} is required”")
+    }else{
+        data.push(req.body);
+        fs.writeFileSync("users.txt",JSON.stringify(data));
+        res.send("user was registered successfully");
+    }
+})
 
-    data.forEach(student => {
-        if(student.id == parseInt(process.argv[4])){
-            student.grade = process.argv[3]
+app.get('/getlogin',function(req,res)
+{
+    let html=fs.readFileSync("index.html",'utf-8');
+    res.send(html);
+})
+
+app.use(express.urlencoded({extended:true}))
+app.post('/setlogin',function(req,res)
+{
+    let data=JSON.parse(fs.readFileSync("users.txt",'utf-8'))
+    console.log(req.body)
+    data.forEach(user => {
+        if(user.user == req.body.user && req.body.user!=''){
+            if(user.pass == req.body.pass && req.body.pass){
+                res.send("{message: logged in successfully, profile:{name:”"+user.name+"”}}");
+            }else{
+                res.status(424).send("{error:”invalid credentials”}");
+            }
+        }else{
+            res.status(424).send("{error:”invalid credentials”}");
         }
     });
-    fs.writeFileSync("new.txt",JSON.stringify(data));
-}
+})
 
-else if(process.argv[2]=="delete")
+app.get('/index',function(req,res)
 {
-    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
-
-    let id = parseInt(process.argv[3])-1
-    data.splice(id,1)
-    fs.writeFileSync("new.txt",JSON.stringify(data));
-}
-
-else if(process.argv[2]=="sum")
+        let html=fs.readFileSync("index.html",'utf-8');
+        res.send(html);
+})
+app.get('/data/:id',function(req,res)
 {
-    let sum = 0
-    let data=JSON.parse(fs.readFileSync("new.txt",'utf-8'))
-    
-for(let i=0;i<data.length;i++){
-    sum+=parseInt(data[i].grade);
-}
-    
-    console.log(sum);
-}
+    res.send(data[parseInt(req.params.id)])
+})
+
+app.put("/data/:id",function(req,res)
+{
+    console.log(req.body);
+    data[parseInt(req.params.id)].name=req.body.name;
+
+    res.send(JSON.stringify(data));
+})
+app.delete('/data/:id',function(req,res)
+{
+    data.splice(parseInt(req.params.id)-1,1);
+    res.send(JSON.stringify(data));
+})
+app.listen(7777,function()
+{
+    console.log('hi...')
+})
